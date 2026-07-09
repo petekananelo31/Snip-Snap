@@ -1,0 +1,41 @@
+const express = require('express');
+const { generateShortCode, isValidUrl } = require('./src/shortcode');
+const { create, get, has, recordClick } = require('./src/storage');
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+app.post('/api/shorten', (req, res) => {
+  const { url } = req.body;
+
+  if (!isValidUrl(url)) {
+    return res.status(400).json({ error: 'A valid http(s) url is required.' });
+  }
+
+  let code;
+  do {
+    code = generateShortCode(7);
+  } while (has(code));
+
+  const entry = create(code, url);
+  res.status(201).json({
+    code,
+    shortUrl: `http://localhost:${PORT}/${code}`,
+    url: entry.url,
+  });
+});
+
+app.get('/:code', (req, res) => {
+  const entry = get(req.params.code);
+  if (!entry) {
+    return res.status(404).json({ error: 'Short URL not found.' });
+  }
+  recordClick(req.params.code);
+  res.redirect(entry.url);
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
