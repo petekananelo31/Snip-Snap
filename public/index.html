@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Snip Snap — shorten a link</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <main class="stage">
+    <header class="masthead">
+      <span class="mark">Snip Snap</span>
+      <span class="tagline">a long address, made short</span>
+    </header>
+
+    <section class="console">
+      <form id="shorten-form">
+        <input id="url-input" type="text" placeholder="https://example.com/very/long/link" required />
+        <button type="submit" id="submit-btn">shorten</button>
+      </form>
+      <p id="error-msg" class="error" hidden></p>
+    </section>
+
+    <section id="result" class="result" hidden>
+      <a id="short-link" href="#" target="_blank"></a>
+      <button id="copy-btn" type="button">copy</button>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html> 
