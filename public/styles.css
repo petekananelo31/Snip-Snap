@@ -23,8 +23,8 @@ body {
 }
 
 .console {
-  background: white;
-  border: 1px solid #d9dce2;
+  background: black;
+  border: 1px solid #0f0f0f;
   border-radius: 10px;
   padding: 20px;
   width: 400px;
