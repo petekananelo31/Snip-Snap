@@ -23,7 +23,7 @@ app.post('/api/shorten', (req, res) => {
   const entry = create(code, url);
   res.status(201).json({
     code,
-    shortUrl: `http://localhost:${PORT}/${code}`,
+    shortUrl: `${req.protocol}://${req.get('host')}/${code}`,
     url: entry.url,
   });
 });
