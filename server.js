@@ -1,6 +1,9 @@
+
 const express = require('express');
 const { generateShortCode, isValidUrl } = require('./src/shortcode');
 const { create, get, has, recordClick } = require('./src/storage');
+
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
@@ -8,7 +11,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-app.post('/api/shorten', (req, res) => {
+app.post('/api/shorten', async (req, res) => {
   const { url } = req.body;
 
   if (!isValidUrl(url)) {
@@ -18,9 +21,9 @@ app.post('/api/shorten', (req, res) => {
   let code;
   do {
     code = generateShortCode(7);
-  } while (has(code));
+  } while (await has(code));
 
-  const entry = create(code, url);
+  const entry = await create(code, url);
   res.status(201).json({
     code,
     shortUrl: `${req.protocol}://${req.get('host')}/${code}`,
@@ -28,12 +31,12 @@ app.post('/api/shorten', (req, res) => {
   });
 });
 
-app.get('/:code', (req, res) => {
-  const entry = get(req.params.code);
+app.get('/:code', async (req, res) => {
+  const entry = await get(req.params.code);
   if (!entry) {
     return res.status(404).json({ error: 'Short URL not found.' });
   }
-  recordClick(req.params.code);
+  await recordClick(req.params.code);
   res.redirect(entry.url);
 });
 
