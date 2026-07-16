@@ -27,7 +27,7 @@ app.post('/api/shorten', async (req, res) => {
   res.status(201).json({
     code,
     shortUrl: `${req.protocol}://${req.get('host')}/${code}`,
-    url: entry.url,
+    url: entry.original_url,
   });
 });
 
@@ -37,7 +37,7 @@ app.get('/:code', async (req, res) => {
     return res.status(404).json({ error: 'Short URL not found.' });
   }
   await recordClick(req.params.code);
-  res.redirect(entry.url);
+  res.redirect(entry.original_url);
 });
 
 app.listen(PORT, () => {
