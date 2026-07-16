@@ -1,5 +1,6 @@
 const express = require('express');
-const crypto = require('crypto');
+const { generateShortCode, isValidUrl } = require('./src/shortcode');
+const { create, get, has, recordClick } = require('./src/storage');
 
 const app = express();
 const PORT = 3000;
@@ -7,33 +8,35 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-function generatePassword({ length = 12, useUppercase = true, useNumbers = true, useSymbols = true }) {
-  let charset = 'abcdefghijklmnopqrstuvwxyz';
-  if (useUppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  if (useNumbers) charset += '0123456789';
-  if (useSymbols) charset += '!@#$%^&*()_+-=[]{}';
+app.post('/api/shorten', (req, res) => {
+  const { url } = req.body;
 
-  const bytes = crypto.randomBytes(length);
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += charset[bytes[i] % charset.length];
-  }
-  return password;
-}
-
-app.post('/api/generate', (req, res) => {
-  const { length, useUppercase, useNumbers, useSymbols } = req.body;
-
-  const len = Number(length) || 12;
-  if (len < 4 || len > 64) {
-    return res.status(400).json({ error: 'Length must be between 4 and 64.' });
+  if (!isValidUrl(url)) {
+    return res.status(400).json({ error: 'A valid http(s) url is required.' });
   }
 
-  const password = generatePassword({ length: len, useUppercase, useNumbers, useSymbols });
-  res.json({ password });
+  let code;
+  do {
+    code = generateShortCode(7);
+  } while (has(code));
+
+  const entry = create(code, url);
+  res.status(201).json({
+    code,
+    shortUrl: `${req.protocol}://${req.get('host')}/${code}`,
+    url: entry.url,
+  });
+});
+
+app.get('/:code', (req, res) => {
+  const entry = get(req.params.code);
+  if (!entry) {
+    return res.status(404).json({ error: 'Short URL not found.' });
+  }
+  recordClick(req.params.code);
+  res.redirect(entry.url);
 });
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
